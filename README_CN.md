@@ -11,8 +11,10 @@
 **创建**: 2026 年 2 月 21 日  
 **更新日期**: 2026 年 3 月 20 日  
 **作者**: WENG YONGGANG(翁勇刚)  
-**论文**: [arXiv:xxxx.xxxxx](https://arxiv.org/) (即将提交)  
+**官方网站**: [neuroconscious.link](https://neuroconscious.link)  
 **代码**: https://github.com/wyg5208/nct  
+
+[English Documentation](README.md)
 
 ---
 
@@ -72,7 +74,8 @@ NCT/
 ├── __init__.py              # 包初始化
 ├── pyproject.toml           # 项目配置
 ├── requirements.txt         # 依赖列表
-├── README.md               # 本文件
+├── README.md               # 英文文档
+├── README_CN.md            # 中文文档
 ├── .gitignore              # Git 忽略规则
 │
 ├── nct_modules/            # 核心模块（9 个文件）
@@ -84,6 +87,14 @@ NCT/
 │   ├── nct_metrics.py      # Φ计算器 + 意识度量 ⭐
 │   ├── nct_gamma_sync.py   # γ同步机制
 │   └── nct_manager.py      # 总控制器
+│
+├── MCS-NCT框架理论/         # MCS 多重约束满足框架
+│   ├── mcs_solver.py       # MCS 核心求解器
+│   └── mcs_nct_integration.py  # NCT 整合模块
+│
+├── cats_nct/               # CATS-NCT 概念抽象变体
+│   ├── core/               # 核心模块
+│   └── manager.py          # CATS-NCT 管理器
 │
 ├── experiments/            # 实验脚本和结果
 │   ├── run_all_experiments.py
@@ -105,6 +116,8 @@ NCT/
 │   └── nct_dashboard.py    # Streamlit 实时仪表盘 🎨
 │
 ├── docs/                   # 文档
+│   ├── 教育领域数据集实验论文/  # 教育领域实验论文
+│   ├── 教育领域数据集实验结果/  # 教育实验结果
 │   └── NCT 完整实施方案.md
 │
 └── papers/                 # 相关论文
@@ -225,6 +238,81 @@ class PhiFromAttention(nn.Module):
 
 ---
 
+## 🔄 框架变体与扩展
+
+### MCS（多重约束满足）框架
+
+MCS 将意识建模重新定义为**多重约束优化问题**：不再追问"什么是意识？"，而是问"一个系统需要满足哪些约束才能具有意识？"这种操作性定义使得意识水平的量化测量成为可能。
+
+**核心公式**:
+```
+C(t) = argmin_S [ Σᵢ wᵢ·Vᵢ(S,t) ]    # 最优意识状态
+意识水平 = 1/(1+J)                     # J = 加权约束违反度
+```
+
+| 约束 | 定义 | 理论基础 |
+|-----|------|---------|
+| C1 感知一致性 | 多模态输入时空对齐 | GWT 全局广播 |
+| C2 时间连续性 | 当前状态可由历史预测 | 预测编码 + 自由能 |
+| C3 自我一致性 | 信念系统无矛盾 | Thagard 连贯性理论 |
+| C4 行动可行性 | 意图可映射到可执行计划 | 具身认知 |
+| C5 社会可解释性 | 经验可传达给他人 | Vygotsky 社会起源论 |
+| C6 整合信息（Φ） | 系统 Φ 值超过阈值 | IIT |
+
+**关键成果**: DAiSEE 数据集 5 折交叉验证 **R²=0.164**（比 NCT Φ 基线提升 121%）
+
+📁 核心文件: `MCS-NCT框架理论/mcs_solver.py`, `mcs_nct_integration.py`  
+📄 论文: *已投稿至 IEEE Transactions on Affective Computing*
+
+---
+
+### CATS-NCT（概念抽象与任务求解）
+
+CATS-NCT 将**概念抽象（CA）双模块架构**与 NCT 的神经科学机制相融合。它将意识建模从感知层面扩展到**概念意识**——稳定的、可传达的心理表征。
+
+| 维度 | NCT（原版） | CATS-NCT |
+|-----|------------|----------|
+| 关注点 | 意识生成 | 概念形成与传达 |
+| 表征层面 | 感知意识 | 概念意识（稳定） |
+| 整合方式 | 基于注意力的 GWS | CA + TS 双模块 |
+| 学习机制 | Transformer-STDP | 概念抽象 + STDP |
+| 可解释性 | 注意力图 | 概念原型 + 门控可视化 |
+| 知识迁移 | 不支持 | 概念空间对齐 |
+
+📁 核心文件: `cats_nct/core/`, `cats_nct/manager.py`  
+🚧 状态: *积极开发中*
+
+---
+
+## 🎓 教育领域研究突破
+
+### 研究演进（V1→V4）
+
+**研究问题**: NCT 架构能否有效监测教育场景中的认知状态？
+
+| 版本 | 重点 | 关键发现 |
+|-----|------|---------|
+| V1 | 概念验证 | 框架可运行，但 Φ 不显著 (p>0.05) |
+| V2 | 深度学习增强 | FER +16.84%，但 Φ 仍不显著 (p=0.549) |
+| V3 | 系统诊断 | **突破**: EEGNet 特征使 Φ 显著 (p=0.0003) |
+| V4 | 论文与验证 | 完整消融研究，PCA 优化 (p=0.00005, d=0.586) |
+
+### 关键突破
+
+核心发现：**当 Φ（整合信息）从深度学习（EEGNet）特征计算而非传统频谱特征时，它成为有效的认知状态标记**。这一发现架起了 IIT 理论与实际教育应用之间的桥梁。
+
+| 特征类型 | Φ 显著性 | Cohen's d |
+|---------|---------|-----------|
+| 传统特征（Welch PSD） | p>0.05（不显著） | - |
+| EEGNet 特征 | **p=0.0003** | **0.524（中等）** |
+| PCA 降维（50维） | **p=0.00005** | **0.586** |
+
+- **EEGNet 分类**: F1=0.62（vs SVM 基线 F1=0.39）
+- **数据集**: MEMA（脑电）、DAiSEE（视频）、FER2013、EdNet
+- 📄 论文: *已投稿至 IEEE Transactions on Affective Computing*
+
+---
+
 ## 📊 预期性能指标
 
 | 维度 | v2.2 | v3.0 | v3.1 (实测) | 提升 |
@@ -316,6 +404,15 @@ for trial in range(100):
 
 - **NCT_arXiv.pdf** - 最新论文预印本（包含完整实验验证）
 - **NCT_arXiv.tex** - LaTeX 源文件
+
+---
+
+## 📄 论文发表
+
+| 论文 | 期刊 | 状态 |
+|-----|------|------|
+| MCS: Multi-Constraint Satisfaction Framework for Consciousness Modeling | IEEE Trans. Affective Computing | 审稿中 |
+| Deep Learning Features Enable IIT (Φ) for Cognitive State Monitoring in Education | IEEE Trans. Affective Computing | 审稿中 |
 
 ---
 

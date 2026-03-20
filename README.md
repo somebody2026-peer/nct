@@ -11,7 +11,7 @@
 **Created**: February 21, 2026  
 **Updated**: March 20, 2026  
 **Author**: WENG YONGGANG(翁勇刚)  
-**Paper**: [arXiv:xxxx.xxxxx](https://arxiv.org/) (Forthcoming)  
+**Website**: [neuroconscious.link](https://neuroconscious.link)  
 **Code**: https://github.com/wyg5208/nct  
 
 [中文文档](README_CN.md)
@@ -88,6 +88,14 @@ NCT/
 │   ├── nct_gamma_sync.py   # γ-sync mechanism
 │   └── nct_manager.py      # Main controller
 │
+├── MCS-NCT框架理论/         # MCS multi-constraint satisfaction framework
+│   ├── mcs_solver.py       # MCS core solver
+│   └── mcs_nct_integration.py  # NCT integration
+│
+├── cats_nct/               # CATS-NCT concept abstraction variant
+│   ├── core/               # Core modules
+│   └── manager.py          # CATS-NCT manager
+│
 ├── experiments/            # Experiment scripts and results
 │   ├── run_all_experiments.py
 │   └── results/            # JSON result data
@@ -108,6 +116,8 @@ NCT/
 │   └── nct_dashboard.py    # Streamlit real-time dashboard 🎨
 │
 ├── docs/                   # Documentation
+│   ├── 教育领域数据集实验论文/  # Education domain experiment papers
+│   ├── 教育领域数据集实验结果/  # Education experiment results
 │   └── NCT Implementation Plan.md
 │
 └── papers/                 # Related papers
@@ -228,6 +238,81 @@ class PhiFromAttention(nn.Module):
 
 ---
 
+## 🔄 Framework Variants & Extensions
+
+### MCS (Multi-Constraint Satisfaction) Framework
+
+MCS reframes consciousness modeling as a **multi-constraint optimization problem**: instead of asking "what is consciousness?", it asks "what constraints must a system satisfy to be conscious?" This operational approach enables quantitative measurement of consciousness levels.
+
+**Core Formulation**:
+```
+C(t) = argmin_S [ Σᵢ wᵢ·Vᵢ(S,t) ]    # Optimal conscious state
+Consciousness Level = 1/(1+J)          # J = weighted constraint violation
+```
+
+| Constraint | Definition | Theoretical Basis |
+|-----------|-----------|------------------|
+| C1 Sensory Consistency | Multi-modal input spatiotemporal alignment | GWT Global Broadcast |
+| C2 Temporal Continuity | Current state predictable from history | Predictive Coding + Free Energy |
+| C3 Self-Consistency | No contradictions in belief system | Thagard's Coherence Theory |
+| C4 Action Feasibility | Intentions mappable to executable plans | Embodied Cognition |
+| C5 Social Interpretability | Experiences communicable to others | Vygotsky's Social Origin |
+| C6 Integrated Information (Φ) | System Φ exceeds threshold | IIT |
+
+**Key Results**: DAiSEE dataset 5-fold CV **R²=0.164** (121% improvement over NCT Φ baseline)
+
+📁 Core files: `MCS-NCT框架理论/mcs_solver.py`, `mcs_nct_integration.py`  
+📄 Paper: *Submitted to IEEE Transactions on Affective Computing*
+
+---
+
+### CATS-NCT (Concept Abstraction & Task Solving)
+
+CATS-NCT fuses **Concept Abstraction (CA) dual-module architecture** with NCT's neuroscience-grounded mechanisms. It extends consciousness modeling from perceptual to **conceptual consciousness**—stable, communicable mental representations.
+
+| Dimension | NCT (Original) | CATS-NCT |
+|-----------|----------------|----------|
+| Focus | Consciousness generation | Concept formation & communication |
+| Representation | Perceptual consciousness | Conceptual consciousness (stable) |
+| Integration | Attention-based GWS | CA + TS dual modules |
+| Learning | Transformer-STDP | Concept abstraction + STDP |
+| Interpretability | Attention maps | Concept prototypes + gating visualization |
+| Knowledge Transfer | Not supported | Concept space alignment |
+
+📁 Core files: `cats_nct/core/`, `cats_nct/manager.py`  
+🚧 Status: *Under active development*
+
+---
+
+## 🎓 Education Domain Research
+
+### Research Evolution (V1→V4)
+
+**Research Question**: Can NCT architecture effectively monitor cognitive states in educational settings?
+
+| Version | Focus | Key Finding |
+|---------|-------|-------------|
+| V1 | Concept validation | Framework operational, but Φ non-significant (p>0.05) |
+| V2 | Deep learning enhancement | FER +16.84%, but Φ still non-significant (p=0.549) |
+| V3 | Systematic diagnosis | **Breakthrough**: EEGNet features make Φ significant (p=0.0003) |
+| V4 | Paper & validation | Full ablation study, PCA optimization (p=0.00005, d=0.586) |
+
+### Key Breakthrough
+
+The critical discovery: **Φ (integrated information) becomes a valid cognitive state marker when computed from deep learning (EEGNet) features** rather than traditional spectral features. This bridges IIT theory with practical educational applications.
+
+| Feature Type | Φ Significance | Cohen's d |
+|-------------|---------------|-----------|
+| Traditional (Welch PSD) | p>0.05 (non-significant) | - |
+| EEGNet features | **p=0.0003** | **0.524 (medium)** |
+| PCA-reduced (50-dim) | **p=0.00005** | **0.586** |
+
+- **EEGNet classification**: F1=0.62 (vs SVM baseline F1=0.39)
+- **Datasets**: MEMA (EEG), DAiSEE (Video), FER2013, EdNet
+- 📄 Paper: *Submitted to IEEE Transactions on Affective Computing*
+
+---
+
 ## 📊 Performance Metrics
 
 | Dimension | v2.2 | v3.0 | v3.1 (Measured) | Improvement |
@@ -319,6 +404,15 @@ for trial in range(100):
 
 - **NCT_arXiv.pdf** - Latest preprint (with complete experimental validation)
 - **NCT_arXiv.tex** - LaTeX source files
+
+---
+
+## 📄 Publications
+
+| Paper | Venue | Status |
+|-------|-------|--------|
+| MCS: Multi-Constraint Satisfaction Framework for Consciousness Modeling | IEEE Trans. Affective Computing | Under Review |
+| Deep Learning Features Enable IIT (Φ) for Cognitive State Monitoring in Education | IEEE Trans. Affective Computing | Under Review |
 
 ---
 
