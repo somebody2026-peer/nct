@@ -80,9 +80,12 @@ results/
 #docs
 # 内部文档和论文源文件（不公开）
 /docs/
+/MCS-NCT框架理论/docs/
+/experiments/docs/
 /neuroconscious_paper/
 /neuroconscious-web/
 .qoder/
+/leaderboard_toolbox/
 
 # Temp files
 *.swp
