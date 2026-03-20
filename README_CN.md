@@ -1,9 +1,16 @@
 # 🧠 NeuroConscious Transformer (NCT)
 
-**版本**: v3.1.0  
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PyPI](https://img.shields.io/badge/PyPI-v3.2.0-007396?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/neuroconscious-transformer/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Transformer](https://img.shields.io/badge/Transformer-Architecture-FF6F00?style=for-the-badge&logo=transformers&logoColor=white)](https://huggingface.co/docs/transformers)
+[![Neuroscience](https://img.shields.io/badge/Neuroscience-Consciousness-4CAF50?style=for-the-badge)](https://en.wikipedia.org/wiki/Consciousness)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+**版本**: v3.2.0  
 **创建**: 2026 年 2 月 21 日  
-**更新日期**: 2026 年 2 月 22 日  
-**作者**: WinClaw Research Team  
+**更新日期**: 2026 年 3 月 20 日  
+**作者**: WENG YONGGANG(翁勇刚)  
 **论文**: [arXiv:xxxx.xxxxx](https://arxiv.org/) (即将提交)  
 **代码**: https://github.com/wyg5208/nct  
 
@@ -313,6 +320,15 @@ for trial in range(100):
 ---
 
 ## 📝 更新日志
+
+### v3.2.0 (2026-03-20)
+- ✅ 新增 MCS（多重约束满足）意识建模框架
+- ✅ 教育领域 V4 实验：EEGNet 特征使 Φ 值具有区分能力 (p=0.0003, d=0.524)
+- ✅ 两篇论文投稿至 IEEE Transactions on Affective Computing
+- ✅ 项目结构重组：清理根目录，整理脚本文件
+- ✅ 统一所有配置文件中的版本号
+- ✅ 修复 pyproject.toml 中的 GitHub URL
+- ✅ 增强 .gitignore 安全性（.env）和组织结构（/temp/）
 
 ### v3.1.0 (2026-02-22)
 - ✅ 完成所有 6 项核心实验验证

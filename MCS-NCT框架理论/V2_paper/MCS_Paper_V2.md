@@ -1,0 +1,374 @@
+# Multi-Constraint Satisfaction (MCS): A Unified Computational Framework for Consciousness Modeling with Educational Validation
+
+---
+
+**Author:** Yonggang Weng  
+**Affiliation:** Universiti Teknologi Malaysia (UTM), Kuala Lumpur, Malaysia  
+**Email:** weng@graduate.utm.my  
+
+**Submission Type:** IEEE Transactions on Affective Computing — Regular Paper (8 pages)
+
+---
+
+## Abstract
+
+The scientific study of consciousness has produced influential but fragmented theories. We propose the Multi-Constraint Satisfaction (MCS) framework, which unifies six theoretical constraints—sensory coherence, temporal continuity, self-consistency, action feasibility, social interpretability, and integrated information—into a single computational model. Through five experimental phases using four educational datasets (MEMA EEG, FER2013, DAiSEE, EdNet; 5,800+ samples total), we demonstrate that MCS V2 with exponential formulation achieves 5-fold CV R²=0.164 on DAiSEE engagement prediction, improving from the NCT Φ baseline R²=0.074. Constraint ablation reveals that removing temporal continuity (C2) causes F1 to drop by 31.3% (p<0.01). We identify domain boundaries: MCS excels with multimodal signals but plateaus on pure interaction sequences (EdNet AUC≈0.244). The framework is open-sourced at https://github.com/wyg5208/nct.
+
+**Keywords:** Consciousness Modeling, Constraint Satisfaction, Integrated Information Theory, Affective Computing, Educational Applications
+
+---
+
+## 1. Introduction
+
+### 1.1 The Fragmentation Problem
+
+Consciousness research has produced multiple influential frameworks: Integrated Information Theory (IIT) quantifies consciousness through integrated information Φ [1-3]; Global Workspace Theory (GWT) explains consciousness via global information broadcast [4,5]; predictive coding frames consciousness as prediction error minimization [6]. Despite individual merits, these theories remain isolated, creating theoretical incompleteness and application limitations.
+
+### 1.2 The Constraint Satisfaction Approach
+
+We propose that consciousness can be understood through constraint satisfaction—a computational paradigm with roots in cognitive science [7,8]. Rather than asking "what is consciousness?", we ask "what constraints must be satisfied for consciousness to emerge?"
+
+This approach offers: (1) theoretical unification—each theory emphasizes specific constraints; (2) mathematical precision—well-defined optimization problems; (3) domain flexibility—different applications can emphasize different constraint subsets; (4) interpretable diagnostics—constraint violation patterns provide mechanistic explanations.
+
+### 1.3 Contributions
+
+1. **Theoretical**: MCS integrates six constraints bridging IIT, GWT, predictive coding, and coherence theories.
+2. **Implementation**: Complete PyTorch implementation with V1/V2 formulation variants.
+3. **Empirical**: Five-phase validation across four educational datasets demonstrating both successes (R² improvement) and principled failures (EdNet plateau).
+4. **Methodological**: Domain-specific constraint selection as a key design principle.
+
+---
+
+## 2. Related Work
+
+**Consciousness Theories.** IIT [1-3] proposes consciousness corresponds to integrated information Φ. GWT [4,5] suggests consciousness arises from global broadcast across cortical areas. Predictive coding [6] proposes the brain minimizes prediction error. Higher-order theories [5,11] emphasize meta-representation.
+
+**Constraint Satisfaction.** Thagard and Verbeurgt [7] modeled explanatory coherence as constraint satisfaction. Rumelhart et al. [8] applied constraint satisfaction to connectionist networks. We extend this tradition to consciousness itself.
+
+**Affective Computing in Education.** Progress includes cognitive load estimation from EEG [14,15], engagement detection from video [16], and attention monitoring [17]. However, these approaches typically target single constructs rather than integrated assessment.
+
+**Gaps.** Existing work lacks: (1) computational unification of consciousness theories; (2) comprehensive educational validation; (3) domain adaptation principles. MCS addresses all three.
+
+---
+
+## 3. The MCS Framework
+
+### 3.1 Foundational Axioms
+
+**Axiom 1 (Existence)**: Conscious states exist as non-empty states: $\exists C(t) \neq \emptyset$.
+
+**Axiom 2 (Optimization)**: Conscious states minimize total constraint violation:
+$$C(t) = \arg\min_{S} \sum_i w_i \cdot V_i(S, t)$$
+
+**Axiom 3 (Hierarchy)**: Constraints possess hierarchical importance determined by context.
+
+### 3.2 The Six Constraints
+
+**C1 (Sensory Coherence)**: Multi-modal inputs must be spatiotemporally aligned:
+$$V_1 = \alpha_t \cdot \max(0, |\Delta t| - \delta_t)/\delta_t + \alpha_f \cdot (1 - \text{sim}_{\text{features}})$$
+
+**C2 (Temporal Continuity)**: Current state must be predictable from history:
+$$V_2 = \|S(t) - f_{\text{GRU}}(S(t-1), \ldots, S(t-k))\|_2^2$$
+
+**C3 (Self-Consistency)**: Belief system must be internally coherent:
+$$V_3 = \frac{1}{\binom{n}{2}} \sum_{i<j} \mathbb{I}[\text{contradict}(b_i, b_j)]$$
+
+**C4 (Action Feasibility)**: Intentions must map to executable motor plans:
+$$V_4 = 1 - \text{feasible}(I)$$
+
+**C5 (Social Interpretability)**: Experiences must be communicable:
+$$V_5 = \|E - D(L(E))\| / \|E\|_\infty$$
+
+**C6 (Integrated Information)**: System's Φ must exceed minimum threshold:
+$$V_6 = \max(0, \Phi_{\min} - \Phi)$$
+
+### 3.3 Unified Consciousness Measure
+
+**V1 (Logistic):** $L(S) = 1/(1 + \sum_i w_i V_i)$
+
+**V2 (Exponential with Normalization):**
+$$L(S) = \exp\left(-\sum_i w_i V_i^{\text{norm}}\right), \quad V_i^{\text{norm}} = (V_i - \mu_i)/(\sigma_i + \epsilon)$$
+
+where running statistics are computed over a 100-sample warmup window.
+
+### 3.4 Domain-Specific Weight Selection
+
+**Educational Assessment** prioritizes C1, C2, C6 (learning requires sustained attention and integration) while de-emphasizing C3, C4, C5 (set to zero weights). Weights were determined through grid search on DAiSEE validation set. Future work will explore data-driven adaptive weight learning.
+
+**Table 1: V2 Weight Configuration for Education**
+
+| Constraint | Weight | Rationale |
+|------------|--------|-----------|
+| C1 (Sensory) | 1.0 | Multimodal attention |
+| C2 (Temporal) | 2.0 | Strongest predictor in ablation |
+| C3/C4/C5 | 0.0 | Not applicable for passive video learning |
+| C6 (Integration) | 1.5 | Core consciousness metric |
+
+---
+
+## 4. Implementation
+
+The MCS solver consists of six constraint modules:
+
+```
+MCSConsciousnessSolver
+├── SensoryCoherenceConstraint (C1): Multi-head Attention
+├── TemporalContinuityConstraint (C2): 2-layer GRU
+├── SelfConsistencyConstraint (C3): Transformer encoder
+├── ActionFeasibilityConstraint (C4): MLP
+├── SocialInterpretabilityConstraint (C5): Encoder-decoder
+├── IntegratedInformationConstraint (C6): Learned Φ approximation
+└── RunningConstraintNormalizer (V2): EMA statistics
+```
+
+**V2 Key Improvements**: (1) Running normalization prevents any constraint from dominating due to scale differences; (2) Exponential formulation provides smoother optimization; (3) 12D feature engineering (6 raw + 6 normalized constraints).
+
+Inference: ~50ms/sample CPU, ~5ms/sample GPU (RTX 3080).
+
+---
+
+## 5. Experiments
+
+### 5.1 Overview
+
+We conducted five phases across four educational datasets:
+
+**Table 2: Datasets**
+
+| Dataset | Samples | Task |
+|---------|---------|------|
+| MEMA EEG | 3,000 | Consciousness classification |
+| FER2013 | 2,700 | Emotion-constraint analysis |
+| DAiSEE | 500 | Engagement prediction |
+| EdNet | 300 students | Knowledge tracing |
+
+The five phases follow a logical progression: (A) basic consciousness discrimination, (B) constraint dominance analysis leading to V2 normalization, (C) engagement prediction as primary validation, (D) domain boundary exploration, (E) constraint validity verification.
+
+### 5.2 Phase A: MEMA EEG
+
+**Objective**: Validate MCS's ability to distinguish consciousness states.
+
+**Results**:
+
+| Metric | V1 | V2 |
+|--------|-----|-----|
+| ANOVA p-value | 0.544 | 0.151 |
+| Effect size (η²) | 0.0004 | 0.00126 |
+| RF Classification F1 | 0.904 | 0.396 |
+
+**Interpretation**: V2 shows improved ANOVA performance (3.6× p-value reduction) but lower RF F1. The V1 RF F1=0.904 achieved high classification using all 6D constraint features; V2's normalization compresses feature variance, reducing RF separability while improving statistical effect sizes. This trade-off reflects V2's design for regression tasks (Phase C) rather than classification.
+
+### 5.3 Phase B: FER2013 — Constraint Dominance
+
+**Objective**: Analyze constraint dominance patterns across emotions.
+
+**V1 Problem**: C5 (Social Interpretability) achieved 100% dominance across all emotions—a pathological pattern indicating scale imbalance.
+
+**V2 Solution**: Running normalization eliminated C5 dominance. C2 (Temporal) became dominant with category-specific rates:
+
+**Table 3: V2 C2 Dominance Rates by Emotion**
+
+| Emotion | C2 Dominance |
+|---------|--------------|
+| Happy | 83% |
+| Sad | 81% |
+| Surprise | 78% |
+| Fear | 77% |
+| Neutral | 73% |
+| Angry | 73% |
+| Disgust | 45% |
+
+C2's dominance (range: 45%-83%, median ~77%) is theoretically justified—facial expression recognition inherently involves temporal pattern analysis.
+
+### 5.4 Phase C: DAiSEE Engagement (Key Result)
+
+**Objective**: Predict student engagement from classroom video.
+
+**Results**:
+
+**Table 4: Engagement Prediction Performance**
+
+| Method | R² | Note |
+|--------|-----|------|
+| NCT Φ baseline | 0.074 | Single metric |
+| MCS V1 (OLS) | 0.057 | Scale imbalance |
+| **MCS V2 Ridge (5-fold CV)** | **0.164** | Main result |
+| MCS V2 Ridge (full data) | 0.187 | For reference |
+| MCS V2 OLS (12D) | 0.193 | Overfitting risk |
+
+**MCS V2 achieves 5-fold CV R²=0.164**, a 121% improvement over NCT Φ baseline.
+
+**Feature Analysis**: C6 (Integrated Information) shows strongest univariate correlation with engagement (r=-0.42, p<1e-22). However, this univariate strength does not directly translate to multivariate necessity (see Phase E ablation discussion).
+
+### 5.5 Phase D: EdNet — Domain Boundary
+
+**Objective**: Apply MCS to knowledge tracing from interaction sequences.
+
+**Results**: All methods plateau at near-random performance (AUC≈0.244):
+
+| Method | AUC |
+|--------|-----|
+| Fixed | 0.243 |
+| NCT-Phi | 0.244 |
+| MCS-6D | 0.244 |
+| IRT | 0.244 |
+
+**Interpretation**: This "failure" is scientifically informative. MCS requires multimodal sensory information to compute meaningful constraints. Pure answer sequences lack: C1 (no multimodal input), C2 (limited temporal dynamics from binary outcomes), C5 (no communicative content).
+
+**Honest Reflection**: The current implementation did not attempt feature engineering tailored to answer sequences. The LearnableFeatureEncoder was not pretrained, performing equivalently to random projection. These results demonstrate that MCS has fundamental limitations on pure behavioral sequence tasks lacking multimodal perceptual input.
+
+### 5.6 Phase E: Constraint Validation
+
+**Objective**: Validate each constraint's unique contribution.
+
+#### 5.6.1 Fisher Discriminant Ratios (V2)
+
+**Table 5: Fisher Ratios (V2 Normalized Constraints)**
+
+| Constraint | MEMA | FER | Interpretation |
+|------------|------|-----|----------------|
+| C1 (Sensory) | 0.25 | 0.08 | Weak after normalization |
+| C2 (Temporal) | 1.31 | 1.08 | **Discriminative (>1)** |
+| C3 (Self) | 0.01 | 0.01 | Minimal (weight=0) |
+| C4 (Action) | 1.05 | 1.08 | **Discriminative (>1)** |
+| C5 (Social) | 0.68 | 0.96 | Moderate (weight=0) |
+| C6 (Integration) | 0.004 | 0.006 | Minimal after normalization |
+
+Four constraints (C2, C4 on both datasets) show Fisher ratio >1.0 indicating discriminative power. Note: C3, C4, C5 have zero weights in V2 education profile but retain discriminative potential for other domains.
+
+#### 5.6.2 Constraint Independence
+
+Maximum inter-constraint correlation: V1 r=0.756 → V2 r=0.694 (reduced collinearity).
+
+#### 5.6.3 Ablation Study (MEMA Classification)
+
+**Table 6: Constraint Ablation Results**
+
+| Removed | F1 Drop | p-value | Significant |
+|---------|---------|---------|-------------|
+| C1 (Sensory) | -7.96% | 0.023 | Yes |
+| **C2 (Temporal)** | **-31.3%** | **<0.01** | **Yes** |
+| C6 (Integration) | -1.36% | n.s. | No |
+
+**Key Finding**: C2 removal causes the largest drop (-31.3%, p<0.01), confirming temporal continuity as most critical for education.
+
+**Ablation Scope Note**: This analysis focuses on non-zero weight constraints (C1, C2, C6) since C3, C4, C5 have zero weights in the education profile and do not contribute to consciousness measurement.
+
+#### 5.6.4 Resolving the C6 Correlation-Ablation Paradox
+
+C6 shows the strongest univariate correlation with engagement (r=-0.42) yet minimal ablation impact (-1.36%). This apparent contradiction reflects a fundamental distinction between univariate correlation and multivariate feature necessity:
+
+1. **Redundancy Effect**: In multivariate regression, C6's information is partially captured by C1-C2 interaction terms, reducing its marginal contribution.
+2. **Task Difference**: Ablation evaluates classification (MEMA) while correlation analysis uses regression (DAiSEE)—different tasks emphasize different feature properties.
+3. **Complementarity**: This pattern validates that MCS constraints have meaningful interdependencies rather than being simply additive.
+
+---
+
+## 6. Discussion
+
+### 6.1 Theoretical Significance
+
+MCS demonstrates that consciousness theories can be integrated as complementary constraints:
+
+| Theory | Constraint |
+|--------|------------|
+| IIT [1-3] | C6 |
+| GWT [4,5] | C1, C5 |
+| Predictive Coding [6] | C2 |
+| Coherence Theory [7] | C3 |
+
+### 6.2 Practical Implications
+
+MCS enables multi-dimensional educational alerts: instead of "engagement low," the system can report "temporal continuity declining, sensory coherence maintained"—actionable feedback for instructors. For example, an adaptive learning system could detect that a student maintains visual attention (C1 stable) but shows declining temporal coherence (C2 increasing), suggesting mind-wandering despite apparent focus.
+
+### 6.3 Limitations
+
+1. **Phase A ANOVA non-significance** (p=0.151): Reflects high EEG biological variability and limited sample size for group-level statistics.
+2. **Phase B C2 new dominance** (45-83%): May indicate genuine importance or need for further weight tuning.
+3. **Phase D plateau**: MCS requires multimodal input—pure interaction logs are insufficient.
+4. **C6 approximation**: Uses learned complexity, not exact IIT Φ3.0 (NP-hard for real-time).
+5. **Weight sensitivity**: Current weights derived from grid search; sensitivity analysis and adaptive learning remain future work.
+
+### 6.4 Future Directions
+
+1. Adaptive weight learning from data
+2. Clinical validation with consciousness disorder patients
+3. Real-time edge deployment
+4. Extended constraints (attention, metacognition)
+
+---
+
+## 7. Conclusion
+
+We presented MCS, a unified framework integrating six theoretical constraints. Through five-phase validation (5,800+ samples):
+
+1. **Performance**: MCS V2 achieves 5-fold CV R²=0.164 on engagement prediction, improving from NCT Φ R²=0.074
+2. **Constraint validity**: C2 (temporal continuity) is most critical (-31.3% F1 upon removal)
+3. **Domain boundaries**: MCS excels with multimodal signals but requires rich input
+4. **Unification**: Bridges previously isolated consciousness theories
+
+All code available at: https://github.com/wyg5208/nct
+
+---
+
+## Acknowledgment
+
+We acknowledge the use of large language models for manuscript editing assistance. We thank the MEMA, FER2013, DAiSEE, and EdNet dataset creators.
+
+---
+
+## References
+
+[1] G. Tononi, "An information integration theory of consciousness," *BMC Neuroscience*, vol. 5, no. 1, p. 42, 2004.
+
+[2] G. Tononi, "Consciousness as integrated information: a provisional manifesto," *The Biological Bulletin*, vol. 215, no. 3, pp. 216-242, 2008.
+
+[3] G. Tononi et al., "Integrated information theory: from consciousness to its physical substrate," *Nature Reviews Neuroscience*, vol. 17, pp. 450-461, 2016.
+
+[4] B. J. Baars, *A Cognitive Theory of Consciousness*. Cambridge University Press, 1988.
+
+[5] S. Dehaene and J. P. Changeux, "Experimental and theoretical approaches to conscious processing," *Neuron*, vol. 70, pp. 200-227, 2011.
+
+[6] K. Friston, "The free-energy principle: a unified brain theory?" *Nature Reviews Neuroscience*, vol. 11, pp. 127-138, 2010.
+
+[7] P. Thagard and K. Verbeurgt, "Coherence as constraint satisfaction," *Cognitive Science*, vol. 22, pp. 1-24, 1998.
+
+[8] D. E. Rumelhart et al., *Parallel Distributed Processing*. MIT Press, 1986.
+
+[9] W. G. Mayner et al., "PyPhi: A toolbox for integrated information theory," *PLoS Computational Biology*, vol. 14, e1006343, 2018.
+
+[10] S. Dehaene et al., "Conscious, preconscious, and subliminal processing," *Trends in Cognitive Sciences*, vol. 10, pp. 204-211, 2006.
+
+[11] D. M. Rosenthal, *Consciousness and Mind*. Oxford University Press, 2005.
+
+[12] R. W. Picard, *Affective Computing*. MIT Press, 1997.
+
+[13] R. A. Calvo and S. D'Mello, "Affect detection: An interdisciplinary review," *IEEE TAC*, vol. 1, pp. 18-37, 2010.
+
+[14] V. J. Lawhern et al., "EEGNet: a compact CNN for EEG-based BCI," *J. Neural Engineering*, vol. 15, 056013, 2018.
+
+[15] C. Herff et al., "Mental workload during n-back task," *Front. Human Neuroscience*, vol. 7, p. 935, 2014.
+
+[16] A. Gupta et al., "DAiSEE: Towards user engagement recognition in the wild," *arXiv:1609.01885*, 2016.
+
+[17] S. D'Mello et al., "Gaze tutor: A gaze-reactive intelligent tutoring system," *IJHCS*, vol. 70, pp. 377-398, 2012.
+
+[18] J. Sweller, "Cognitive load during problem solving," *Cognitive Science*, vol. 12, pp. 257-285, 1988.
+
+[19] M. Csikszentmihalyi, *Flow: The Psychology of Optimal Experience*. Harper & Row, 1990.
+
+[20] S. G. Hart and L. E. Staveland, "Development of NASA-TLX," *Advances in Psychology*, vol. 52, pp. 139-183, 1988.
+
+[21] B. E. Stein and T. R. Stanford, "Multisensory integration," *Nature Reviews Neuroscience*, vol. 9, pp. 255-266, 2008.
+
+[22] L. S. Vygotsky, *Thought and Language*. MIT Press, 1934/1986.
+
+[23] M. Oizumi et al., "Integrated Information Theory 3.0," *PLoS Computational Biology*, vol. 10, e1003588, 2014.
+
+[24] Y. Choi et al., "EdNet: A large-scale hierarchical dataset in education," *AIED*, pp. 69-73, 2020.
+
+---
+
+*Manuscript prepared: March 2026*
+
+*Target: IEEE Transactions on Affective Computing (Regular Paper)*

@@ -15,9 +15,14 @@ sensory_data → MultiModalEncoder → CrossModalIntegration
               → output (NeuroConsciousnessState)
 ```
 
-作者：WinClaw Research Team
+作者：WENG YONGGANG(翁勇刚)
 创建：2026 年 2 月 21 日
-版本：v3.0.0-alpha
+版本：v3.1.1
+
+修订记录：
+- 2026-03-12: 修复 consciousness_threshold 参数未传递给 AttentionGlobalWorkspace 的 bug
+  原因：NCTConfig 中的 consciousness_threshold 配置未生效，导致 AttentionGlobalWorkspace
+        始终使用默认值 0.7，而非用户配置的值。此 bug 在实验2可解释性验证中发现。
 """
 
 from __future__ import annotations
@@ -77,11 +82,14 @@ class NCTManager(nn.Module):
         )
         
         # 3. Attention Global Workspace
+        # [2026-03-12 修复] 添加 consciousness_threshold 参数传递
+        # 原因：此前未传递此参数，导致 AttentionGlobalWorkspace 始终使用默认值 0.7
         self.attention_workspace = AttentionGlobalWorkspace(
             d_model=self.config.d_model,
             n_heads=self.config.n_heads,
             dim_ff=self.config.dim_ff,
             gamma_freq=self.config.gamma_freq,
+            consciousness_threshold=self.config.consciousness_threshold,  # [FIX] 传递配置的阈值
         )
         
         # 4. Transformer-STDP 学习
@@ -157,10 +165,11 @@ class NCTManager(nn.Module):
         self.total_cycles += 1
         
         # Step 1: 转为 PyTorch 张量
+        device = next(self.parameters()).device if len(list(self.parameters())) > 0 else 'cpu'
         sensory_tensors = {}
         for modality, data in sensory_data.items():
             if isinstance(data, np.ndarray):
-                sensory_tensors[modality] = torch.from_numpy(data).float().unsqueeze(0)
+                sensory_tensors[modality] = torch.from_numpy(data).float().unsqueeze(0).to(device)
         
         # Step 2: 多模态编码
         embeddings = self.multimodal_encoder(sensory_tensors)
@@ -188,21 +197,30 @@ class NCTManager(nn.Module):
         # Step 5: Attention Global Workspace 选择意识内容
         # 【多候选方案】构建多个候选表征进行竞争
         # 从 embeddings 中提取各模态的独立特征向量
-        visual_candidate = self._embed_to_d(embeddings['visual_emb'])  # [D]
-        auditory_candidate = self._embed_to_d(embeddings['audio_emb'])  # [D]
-        intero_candidate = self._embed_to_d(embeddings['intero_emb'])  # [D]
+        candidates = []
+        
+        # 整合表征（必须有）
         integrated_candidate = integrated.squeeze(0)  # [1, D] → [D]
+        candidates.append(integrated_candidate)
         
-        # 构建候选列表（4 个候选：整合、视觉、听觉、内感受）
-        candidate_list = [
-            integrated_candidate,      # 主表征 [D]
-            visual_candidate,          # 视觉特征 [D]
-            auditory_candidate,        # 听觉特征 [D]
-            intero_candidate,          # 内感受特征 [D]
-        ]
+        # 视觉表征（如果有）
+        if 'visual_emb' in embeddings:
+            visual_candidate = self._embed_to_d(embeddings['visual_emb'])  # [D]
+            candidates.append(visual_candidate)
         
+        # 听觉表征（如果有）
+        if 'audio_emb' in embeddings:
+            auditory_candidate = self._embed_to_d(embeddings['audio_emb'])  # [D]
+            candidates.append(auditory_candidate)
+        
+        # 内感受表征（如果有）
+        if 'intero_emb' in embeddings:
+            intero_candidate = self._embed_to_d(embeddings['intero_emb'])  # [D]
+            candidates.append(intero_candidate)
+        
+        # 调用工作空间
         winner_state, workspace_info = self.attention_workspace(
-            candidates=candidate_list,
+            candidates=candidates,
             neuromodulator_state=neurotransmitter_state,
         )
         

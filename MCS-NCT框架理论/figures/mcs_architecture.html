@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCS Architecture Overview - Interactive Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #canvas-container {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        #canvas {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        #control-panel {
+            width: 320px;
+            background: #fff;
+            border-left: 1px solid #ddd;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .panel-section {
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        .panel-section h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #2A9D8F;
+        }
+        
+        .control-group {
+            margin-bottom: 10px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .control-group input[type="text"],
+        .control-group input[type="number"],
+        .control-group select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .control-group input[type="color"] {
+            width: 60px;
+            height: 25px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-row > * {
+            flex: 1;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .btn-primary {
+            background: #2A9D8F;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6C757D;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #457B9D;
+            color: white;
+        }
+        
+        .element-selector {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: white;
+        }
+        
+        .selected-element {
+            background: #e3f2fd;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        #element-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+            padding: 5px;
+        }
+        
+        .element-item {
+            padding: 5px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        
+        .element-item:hover {
+            background: #f0f0f0;
+        }
+        
+        .element-item.active {
+            background: #2A9D8F;
+            color: white;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="canvas" width="1100" height="700"></canvas>
+    </div>
+    
+    <div id="control-panel">
+        <div class="panel-section">
+            <h3>📐 全局设置</h3>
+            <div class="control-group">
+                <label>画布宽度</label>
+                <input type="number" id="canvas-width" value="1100" min="800" max="2000">
+            </div>
+            <div class="control-group">
+                <label>画布高度</label>
+                <input type="number" id="canvas-height" value="700" min="400" max="1500">
+            </div>
+            <div class="control-group">
+                <label>背景颜色</label>
+                <input type="color" id="bg-color" value="#ffffff">
+            </div>
+            <button class="btn btn-primary" onclick="applyCanvasSize()">应用尺寸</button>
+        </div>
+        
+        <div class="panel-section">
+            <h3>🎯 元素选择</h3>
+            <select id="element-category" class="element-selector" onchange="filterElements()">
+                <option value="all">全部元素</option>
+                <option value="input">输入模块</option>
+                <option value="constraint">约束模块</option>
+                <option value="normalizer">归一化</option>
+                <option value="output">输出模块</option>
+                <option value="arrow">连接线</option>
+            </select>
+            <div id="element-list"></div>
+        </div>
+        
+        <div class="panel-section">
+            <h3>✏️ 元素属性</h3>
+            <div id="selected-info" class="selected-element">请选择一个元素</div>
+            
+            <div id="element-controls" style="display:none;">
+                <div class="control-group">
+                    <label>标签文字</label>
+                    <input type="text" id="element-label">
+                </div>
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>X 位置</label>
+                        <input type="number" id="element-x" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label>Y 位置</label>
+                        <input type="number" id="element-y" step="1">
+                    </div>
+                </div>
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>宽度</label>
+                        <input type="number" id="element-width" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label>高度</label>
+                        <input type="number" id="element-height" step="1">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>边框颜色</label>
+                    <input type="color" id="element-border-color">
+                </div>
+                <div class="control-group">
+                    <label>背景颜色</label>
+                    <input type="color" id="element-bg-color">
+                </div>
+                <div class="control-group">
+                    <label>字体大小</label>
+                    <input type="range" id="element-font-size" min="8" max="24" value="12">
+                    <span id="font-size-value">12px</span>
+                </div>
+                <div class="control-group">
+                    <label>边框宽度</label>
+                    <input type="range" id="element-border-width" min="1" max="5" value="2">
+                    <span id="border-width-value">2px</span>
+                </div>
+                <button class="btn btn-success" onclick="applyElementChanges()">应用更改</button>
+                <button class="btn btn-secondary" onclick="resetElement()">重置</button>
+            </div>
+        </div>
+        
+        <div class="panel-section">
+            <h3>🔗 箭头设置</h3>
+            <div class="control-group">
+                <label>箭头颜色</label>
+                <input type="color" id="arrow-color" value="#6C757D">
+            </div>
+            <div class="control-group">
+                <label>箭头宽度</label>
+                <input type="range" id="arrow-width" min="1" max="5" value="2">
+            </div>
+            <div class="control-group">
+                <label>箭头透明度</label>
+                <input type="range" id="arrow-opacity" min="0" max="100" value="60">
+            </div>
+            <button class="btn btn-primary" onclick="applyArrowSettings()">应用箭头设置</button>
+        </div>
+        
+        <div class="panel-section">
+            <h3>💾 导出</h3>
+            <button class="btn btn-primary" onclick="exportPNG()">导出 PNG</button>
+            <button class="btn btn-secondary" onclick="exportJSON()">导出配置</button>
+            <button class="btn btn-secondary" onclick="importJSON()">导入配置</button>
+            <input type="file" id="import-file" style="display:none" accept=".json">
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+    
+    <script>
+        // ===== 配置数据 =====
+        const defaultConfig = {
+            canvas: { width: 1100, height: 700, bgColor: '#ffffff' },
+            title: {
+                text: 'MCS Architecture Overview',
+                x: 550, y: 30, fontSize: 18, color: '#1D3557', bold: true
+            },
+            inputs: [
+                { id: 'visual', label: 'Visual\n(Facial)', x: 30, y: 150, width: 100, height: 60,
+                  color: '#457B9D', bgColor: '#ffffff', fontSize: 11 },
+                { id: 'eeg', label: 'EEG\n(Memory)', x: 30, y: 240, width: 100, height: 60,
+                  color: '#457B9D', bgColor: '#ffffff', fontSize: 11 },
+                { id: 'audio', label: 'Audio\n(Vocal)', x: 30, y: 330, width: 100, height: 60,
+                  color: '#457B9D', bgColor: '#ffffff', fontSize: 11 },
+                { id: 'behavior', label: 'Behavioral\n(Logs)', x: 30, y: 420, width: 100, height: 60,
+                  color: '#457B9D', bgColor: '#ffffff', fontSize: 11 }
+            ],
+            constraints: [
+                { id: 'c1', name: 'C1: Sensory\nCoherence', module: 'Attention\nMechanism', math: 'αₜ, αf',
+                  x: 200, y: 120, width: 130, height: 90,
+                  color: '#457B9D', bgColor: '#ffffff', fontSize: 10 },
+                { id: 'c2', name: 'C2: Temporal\nContinuity', module: '2-layer GRU', math: 'f_GRU()',
+                  x: 350, y: 120, width: 130, height: 90,
+                  color: '#2A9D8F', bgColor: '#ffffff', fontSize: 10 },
+                { id: 'c3', name: 'C3: Self-\nConsistency', module: 'Transformer\nEncoder', math: 'I[contradict]',
+                  x: 500, y: 120, width: 130, height: 90,
+                  color: '#F4A261', bgColor: '#ffffff', fontSize: 10 },
+                { id: 'c4', name: 'C4: Action\nFeasibility', module: 'MLP\n(256→128→1)', math: 'feasible(I)',
+                  x: 200, y: 280, width: 130, height: 90,
+                  color: '#457B9D', bgColor: '#ffffff', fontSize: 10 },
+                { id: 'c5', name: 'C5: Social\nInterpretability', module: 'Encoder-\nDecoder LSTM', math: '||E-D(L(E))||',
+                  x: 350, y: 280, width: 130, height: 90,
+                  color: '#457B9D', bgColor: '#ffffff', fontSize: 10 },
+                { id: 'c6', name: 'C6: Integrated\nInformation', module: 'Learned Φ\nApproximation', math: 'max(0,Φmin-Φ)',
+                  x: 500, y: 280, width: 130, height: 90,
+                  color: '#E63946', bgColor: '#ffffff', fontSize: 10, borderWidth: 3 }
+            ],
+            normalizer: {
+                title: 'Running Normalizer (V2)',
+                ema: 'EMA Statistics',
+                beta: 'β = 0.99',
+                formula: 'V_norm = (V - μ) / (σ + ε)',
+                warmup: '100-sample warmup',
+                x: 700, y: 120, width: 180, height: 200,
+                color: '#E63946', bgColor: '#ffffff', fontSize: 11
+            },
+            output: {
+                title: 'Output L(S)',
+                formula: 'L(S) = exp(-Σ wᵢ·Vᵢ^norm)',
+                sublabel: 'Exponential Formulation',
+                performance: '~5ms GPU | ~50ms CPU',
+                x: 700, y: 400, width: 180, height: 130,
+                color: '#2A9D8F', bgColor: '#ffffff', fontSize: 11
+            },
+            arrows: {
+                color: '#6C757D',
+                width: 2,
+                opacity: 0.6
+            }
+        };
+        
+        let config = JSON.parse(JSON.stringify(defaultConfig));
+        let selectedElement = null;
+        let canvas, ctx;
+        
+        // ===== 拖拽状态 =====
+        let isDragging = false;
+        let dragElement = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        
+        // ===== 初始化 =====
+        function init() {
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            
+            canvas.width = config.canvas.width;
+            canvas.height = config.canvas.height;
+            
+            updateElementList();
+            draw();
+            
+            // 事件监听
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseleave', handleMouseUp);
+            
+            document.getElementById('element-font-size').addEventListener('input', function() {
+                document.getElementById('font-size-value').textContent = this.value + 'px';
+            });
+            document.getElementById('element-border-width').addEventListener('input', function() {
+                document.getElementById('border-width-value').textContent = this.value + 'px';
+            });
+            document.getElementById('import-file').addEventListener('change', handleImport);
+        }
+        
+        // ===== 绘制函数 =====
+        function draw() {
+            ctx.fillStyle = config.canvas.bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制标题
+            drawTitle();
+            
+            // 绘制箭头（底层）
+            drawArrows();
+            
+            // 绘制输入模块
+            config.inputs.forEach(i => drawInputBox(i));
+            
+            // 绘制约束模块
+            config.constraints.forEach(c => drawConstraintBox(c));
+            
+            // 绘制归一化模块
+            drawNormalizer();
+            
+            // 绘制输出模块
+            drawOutput();
+        }
+        
+        function drawTitle() {
+            const t = config.title;
+            ctx.font = `${t.bold ? 'bold ' : ''}${t.fontSize}px Arial`;
+            ctx.fillStyle = t.color;
+            ctx.textAlign = 'center';
+            ctx.fillText(t.text, t.x, t.y);
+        }
+        
+        function drawInputBox(box) {
+            ctx.save();
+            
+            ctx.fillStyle = box.bgColor;
+            ctx.strokeStyle = box.color;
+            ctx.lineWidth = box.borderWidth || 2;
+            
+            roundRect(ctx, box.x, box.y, box.width, box.height, 8);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 文字
+            ctx.fillStyle = box.color;
+            ctx.textAlign = 'center';
+            ctx.font = `${box.fontSize}px Arial`;
+            
+            const lines = box.label.split('\n');
+            lines.forEach((line, i) => {
+                ctx.fillText(line, box.x + box.width/2, box.y + box.height/2 + 5 + i * 14);
+            });
+            
+            // 高亮选中
+            if (selectedElement && selectedElement.id === box.id) {
+                drawSelectionHighlight(box);
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawConstraintBox(box) {
+            ctx.save();
+            
+            ctx.fillStyle = box.bgColor;
+            ctx.strokeStyle = box.color;
+            ctx.lineWidth = box.borderWidth || 2;
+            
+            roundRect(ctx, box.x, box.y, box.width, box.height, 8);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 名称
+            ctx.fillStyle = box.color;
+            ctx.textAlign = 'center';
+            ctx.font = `bold ${box.fontSize}px Arial`;
+            
+            const nameLines = box.name.split('\n');
+            nameLines.forEach((line, i) => {
+                ctx.fillText(line, box.x + box.width/2, box.y + 18 + i * 12);
+            });
+            
+            // 模块
+            ctx.font = `${box.fontSize - 1}px Arial`;
+            ctx.fillStyle = '#333';
+            const moduleLines = box.module.split('\n');
+            moduleLines.forEach((line, i) => {
+                ctx.fillText(line, box.x + box.width/2, box.y + box.height/2 + 5 + i * 12);
+            });
+            
+            // 数学公式
+            ctx.font = `${box.fontSize}px monospace`;
+            ctx.fillStyle = '#666';
+            ctx.fillText(box.math, box.x + box.width/2, box.y + box.height - 10);
+            
+            // 高亮选中
+            if (selectedElement && selectedElement.id === box.id) {
+                drawSelectionHighlight(box);
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawNormalizer() {
+            const n = config.normalizer;
+            ctx.save();
+            
+            // 外框
+            ctx.fillStyle = n.bgColor;
+            ctx.strokeStyle = n.color;
+            ctx.lineWidth = 2;
+            
+            roundRect(ctx, n.x, n.y, n.width, n.height, 8);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 标题
+            ctx.fillStyle = n.color;
+            ctx.textAlign = 'center';
+            ctx.font = `bold ${n.fontSize}px Arial`;
+            ctx.fillText(n.title, n.x + n.width/2, n.y + 25);
+            
+            // EMA
+            ctx.font = `${n.fontSize}px Arial`;
+            ctx.fillText(n.ema, n.x + n.width/2, n.y + 55);
+            ctx.fillText(n.beta, n.x + n.width/2, n.y + 75);
+            
+            // 公式
+            ctx.font = `${n.fontSize}px monospace`;
+            ctx.fillStyle = '#333';
+            ctx.fillText(n.formula, n.x + n.width/2, n.y + 110);
+            
+            // Warmup
+            ctx.font = `italic ${n.fontSize - 2}px Arial`;
+            ctx.fillStyle = '#666';
+            ctx.fillText(n.warmup, n.x + n.width/2, n.y + 140);
+            
+            // 高亮选中
+            if (selectedElement && selectedElement.id === 'normalizer') {
+                drawSelectionHighlight(n);
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawOutput() {
+            const o = config.output;
+            ctx.save();
+            
+            ctx.fillStyle = o.bgColor;
+            ctx.strokeStyle = o.color;
+            ctx.lineWidth = 2.5;
+            
+            roundRect(ctx, o.x, o.y, o.width, o.height, 8);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 标题
+            ctx.fillStyle = o.color;
+            ctx.textAlign = 'center';
+            ctx.font = `bold ${o.fontSize}px Arial`;
+            ctx.fillText(o.title, o.x + o.width/2, o.y + 25);
+            
+            // 公式
+            ctx.font = `${o.fontSize}px monospace`;
+            ctx.fillStyle = '#333';
+            ctx.fillText(o.formula, o.x + o.width/2, o.y + 55);
+            
+            // 子标签
+            ctx.font = `bold ${o.fontSize - 1}px Arial`;
+            ctx.fillStyle = o.color;
+            ctx.fillText(o.sublabel, o.x + o.width/2, o.y + 80);
+            
+            // 性能
+            ctx.font = `${o.fontSize - 1}px Arial`;
+            ctx.fillStyle = '#666';
+            ctx.fillText(o.performance, o.x + o.width/2, o.y + 110);
+            
+            // 高亮选中
+            if (selectedElement && selectedElement.id === 'output') {
+                drawSelectionHighlight(o);
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawSelectionHighlight(box) {
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            roundRect(ctx, box.x - 2, box.y - 2, box.width + 4, box.height + 4, 10);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        function drawArrows() {
+            const arrowConfig = config.arrows;
+            
+            ctx.save();
+            ctx.strokeStyle = arrowConfig.color;
+            ctx.lineWidth = arrowConfig.width;
+            ctx.globalAlpha = arrowConfig.opacity;
+            
+            // 输入 → 约束
+            const inputConstraintMap = {
+                'visual': ['c1'],
+                'eeg': ['c2', 'c6'],
+                'audio': ['c5'],
+                'behavior': ['c4']
+            };
+            
+            config.inputs.forEach(input => {
+                const targets = inputConstraintMap[input.id] || [];
+                targets.forEach(targetId => {
+                    const target = config.constraints.find(c => c.id === targetId);
+                    if (target) {
+                        drawArrow(input.x + input.width, input.y + input.height/2,
+                                 target.x, target.y + target.height/2);
+                    }
+                });
+            });
+            
+            // 约束 → 归一化
+            config.constraints.forEach(c => {
+                drawArrow(c.x + c.width, c.y + c.height/2,
+                         config.normalizer.x, config.normalizer.y + config.normalizer.height/2);
+            });
+            
+            // 归一化 → 输出
+            drawArrow(config.normalizer.x + config.normalizer.width/2, 
+                     config.normalizer.y + config.normalizer.height,
+                     config.output.x + config.output.width/2, config.output.y);
+            
+            ctx.restore();
+        }
+        
+        function drawArrow(x1, y1, x2, y2) {
+            const headLen = 10;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            
+            // 箭头头部
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI/6), y2 - headLen * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI/6), y2 - headLen * Math.sin(angle + Math.PI/6));
+            ctx.closePath();
+            ctx.fillStyle = config.arrows.color;
+            ctx.fill();
+        }
+        
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+        
+        // ===== 交互函数 =====
+        function handleCanvasClick(e) {
+            // 点击选择已在 mousedown 中处理
+            // 此函数保留用于其他点击操作
+        }
+        
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 查找点击的元素
+            let found = null;
+            
+            config.inputs.forEach(i => {
+                if (isInBox(x, y, i)) found = i;
+            });
+            
+            config.constraints.forEach(c => {
+                if (isInBox(x, y, c)) found = c;
+            });
+            
+            if (isInBox(x, y, config.normalizer)) found = {...config.normalizer, id: 'normalizer', isRef: true};
+            if (isInBox(x, y, config.output)) found = {...config.output, id: 'output', isRef: true};
+            
+            if (found) {
+                isDragging = true;
+                dragElement = found;
+                dragOffsetX = x - found.x;
+                dragOffsetY = y - found.y;
+                canvas.style.cursor = 'grabbing';
+                selectElement(found);
+            }
+        }
+        
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 如果正在拖拽
+            if (isDragging && dragElement) {
+                // 更新实际元素位置
+                if (dragElement.isRef) {
+                    // 对于 normalizer 和 output，更新原始配置
+                    const target = dragElement.id === 'normalizer' ? config.normalizer : config.output;
+                    target.x = x - dragOffsetX;
+                    target.y = y - dragOffsetY;
+                } else {
+                    dragElement.x = x - dragOffsetX;
+                    dragElement.y = y - dragOffsetY;
+                }
+                
+                // 更新控制面板显示
+                document.getElementById('element-x').value = Math.round(x - dragOffsetX);
+                document.getElementById('element-y').value = Math.round(y - dragOffsetY);
+                
+                // 实时重绘（箭头会自动跟随）
+                draw();
+                return;
+            }
+            
+            // 悬停检测
+            let hovered = null;
+            
+            config.inputs.forEach(i => {
+                if (isInBox(x, y, i)) hovered = i;
+            });
+            
+            config.constraints.forEach(c => {
+                if (isInBox(x, y, c)) hovered = c;
+            });
+            
+            if (isInBox(x, y, config.normalizer)) hovered = {...config.normalizer, id: 'normalizer'};
+            if (isInBox(x, y, config.output)) hovered = {...config.output, id: 'output'};
+            
+            const tooltip = document.getElementById('tooltip');
+            if (hovered) {
+                canvas.style.cursor = 'grab';
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX + 10) + 'px';
+                tooltip.style.top = (e.clientY + 10) + 'px';
+                tooltip.textContent = hovered.name || hovered.label || hovered.id + ' (拖拽移动)';
+            } else {
+                canvas.style.cursor = 'default';
+                tooltip.style.display = 'none';
+            }
+        }
+        
+        function handleMouseUp(e) {
+            if (isDragging) {
+                isDragging = false;
+                dragElement = null;
+                canvas.style.cursor = 'default';
+            }
+        }
+        
+        function isInBox(x, y, box) {
+            return x >= box.x && x <= box.x + box.width &&
+                   y >= box.y && y <= box.y + box.height;
+        }
+        
+        function selectElement(element) {
+            selectedElement = element;
+            
+            document.getElementById('selected-info').textContent = 
+                `已选择: ${element.name || element.label || element.id}`;
+            
+            document.getElementById('element-controls').style.display = 'block';
+            
+            document.getElementById('element-label').value = element.name || element.label || element.title || '';
+            document.getElementById('element-x').value = element.x;
+            document.getElementById('element-y').value = element.y;
+            document.getElementById('element-width').value = element.width;
+            document.getElementById('element-height').value = element.height;
+            document.getElementById('element-border-color').value = element.color;
+            document.getElementById('element-bg-color').value = element.bgColor;
+            document.getElementById('element-font-size').value = element.fontSize;
+            document.getElementById('element-border-width').value = element.borderWidth || 2;
+            
+            updateElementList();
+            draw();
+        }
+        
+        function updateElementList() {
+            const category = document.getElementById('element-category').value;
+            const list = document.getElementById('element-list');
+            list.innerHTML = '';
+            
+            let elements = [];
+            
+            if (category === 'all' || category === 'input') {
+                elements = elements.concat(config.inputs.map(i => ({...i, type: 'input'})));
+            }
+            if (category === 'all' || category === 'constraint') {
+                elements = elements.concat(config.constraints.map(c => ({...c, type: 'constraint'})));
+            }
+            if (category === 'all' || category === 'normalizer') {
+                elements.push({...config.normalizer, id: 'normalizer', type: 'normalizer'});
+            }
+            if (category === 'all' || category === 'output') {
+                elements.push({...config.output, id: 'output', type: 'output'});
+            }
+            
+            elements.forEach(el => {
+                const div = document.createElement('div');
+                div.className = 'element-item' + (selectedElement && selectedElement.id === el.id ? ' active' : '');
+                div.textContent = el.name || el.label || el.id;
+                div.onclick = () => selectElement(el);
+                list.appendChild(div);
+            });
+        }
+        
+        function filterElements() {
+            updateElementList();
+        }
+        
+        function applyElementChanges() {
+            if (!selectedElement) return;
+            
+            const label = document.getElementById('element-label').value;
+            if (selectedElement.name) selectedElement.name = label;
+            if (selectedElement.label) selectedElement.label = label;
+            if (selectedElement.title) selectedElement.title = label;
+            
+            selectedElement.x = parseInt(document.getElementById('element-x').value);
+            selectedElement.y = parseInt(document.getElementById('element-y').value);
+            selectedElement.width = parseInt(document.getElementById('element-width').value);
+            selectedElement.height = parseInt(document.getElementById('element-height').value);
+            selectedElement.color = document.getElementById('element-border-color').value;
+            selectedElement.bgColor = document.getElementById('element-bg-color').value;
+            selectedElement.fontSize = parseInt(document.getElementById('element-font-size').value);
+            selectedElement.borderWidth = parseInt(document.getElementById('element-border-width').value);
+            
+            draw();
+        }
+        
+        function resetElement() {
+            if (!selectedElement) return;
+            
+            const defaultEl = defaultConfig.inputs.find(i => i.id === selectedElement.id) ||
+                             defaultConfig.constraints.find(c => c.id === selectedElement.id) ||
+                             (selectedElement.id === 'normalizer' ? defaultConfig.normalizer : null) ||
+                             (selectedElement.id === 'output' ? defaultConfig.output : null);
+            
+            if (defaultEl) {
+                Object.assign(selectedElement, JSON.parse(JSON.stringify(defaultEl)));
+                selectElement(selectedElement);
+            }
+        }
+        
+        function applyCanvasSize() {
+            canvas.width = parseInt(document.getElementById('canvas-width').value);
+            canvas.height = parseInt(document.getElementById('canvas-height').value);
+            config.canvas.bgColor = document.getElementById('bg-color').value;
+            draw();
+        }
+        
+        function applyArrowSettings() {
+            config.arrows.color = document.getElementById('arrow-color').value;
+            config.arrows.width = parseInt(document.getElementById('arrow-width').value);
+            config.arrows.opacity = parseInt(document.getElementById('arrow-opacity').value) / 100;
+            draw();
+        }
+        
+        // ===== 导出函数 =====
+        function exportPNG() {
+            const link = document.createElement('a');
+            link.download = 'mcs_architecture.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function exportJSON() {
+            const dataStr = JSON.stringify(config, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const link = document.createElement('a');
+            link.download = 'mcs_architecture_config.json';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        }
+        
+        function importJSON() {
+            document.getElementById('import-file').click();
+        }
+        
+        function handleImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    config = JSON.parse(event.target.result);
+                    canvas.width = config.canvas.width;
+                    canvas.height = config.canvas.height;
+                    draw();
+                    updateElementList();
+                } catch (err) {
+                    alert('导入失败：无效的 JSON 文件');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // 启动
+        window.onload = init;
+    </script>
+</body>
+</html>

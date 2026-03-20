@@ -27,9 +27,9 @@ Audio Emb [B, N_a, D] ──┤
 Intero Emb [B, 1, D] ───┘
 ```
 
-作者：WinClaw Research Team
+作者：WENG YONGGANG(翁勇刚)
 创建：2026 年 2 月 21 日
-版本：v3.0.0-alpha
+版本：v3.1.0
 """
 
 from __future__ import annotations
@@ -112,7 +112,12 @@ class CrossModalIntegration(nn.Module):
             integrated: 整合后的表征 [B, D]
             info: 包含注意力图谱等诊断信息
         """
-        B = next(iter(embeddings.values())).shape[0]
+        # 确保 workspace_query 在和输入相同的设备上
+        first_tensor = next(iter(embeddings.values()))
+        if self.workspace_query.device != first_tensor.device:
+            self.workspace_query = nn.Parameter(self.workspace_query.to(first_tensor.device))
+        
+        B = first_tensor.shape[0]
         
         # Step 1: 拼接所有模态 tokens
         # 确保顺序一致：visual → audio → intero

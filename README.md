@@ -1,9 +1,16 @@
 # 🧠 NeuroConscious Transformer (NCT)
 
-**Version**: v3.1.0  
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PyPI](https://img.shields.io/badge/PyPI-v3.2.0-007396?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/neuroconscious-transformer/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Transformer](https://img.shields.io/badge/Transformer-Architecture-FF6F00?style=for-the-badge&logo=transformers&logoColor=white)](https://huggingface.co/docs/transformers)
+[![Neuroscience](https://img.shields.io/badge/Neuroscience-Consciousness-4CAF50?style=for-the-badge)](https://en.wikipedia.org/wiki/Consciousness)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+**Version**: v3.2.0  
 **Created**: February 21, 2026  
-**Updated**: February 22, 2026  
-**Author**: WinClaw Research Team  
+**Updated**: March 20, 2026  
+**Author**: WENG YONGGANG(翁勇刚)  
 **Paper**: [arXiv:xxxx.xxxxx](https://arxiv.org/) (Forthcoming)  
 **Code**: https://github.com/wyg5208/nct  
 
@@ -316,6 +323,15 @@ for trial in range(100):
 ---
 
 ## 📝 Changelog
+
+### v3.2.0 (2026-03-20)
+- ✅ Added MCS (Multi-Constraint Satisfaction) consciousness modeling framework
+- ✅ Education V4 experiments: EEGNet features enable Φ discrimination (p=0.0003, d=0.524)
+- ✅ Two papers submitted to IEEE Transactions on Affective Computing
+- ✅ Project restructuring: cleaned root directory, organized scripts
+- ✅ Unified version numbers across all config files
+- ✅ Fixed GitHub URLs in pyproject.toml
+- ✅ Enhanced .gitignore for security (.env) and organization (/temp/)
 
 ### v3.1.0 (2026-02-22)
 - ✅ Completed all 6 core experiment validations

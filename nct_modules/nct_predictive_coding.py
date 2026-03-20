@@ -20,9 +20,9 @@ F = E_q(z)[ln q(z) - ln p(s,z)]           # 变分自由能
 - 自下而上预测误差 ↔ Residual connections
 - 自上而下预测 ↔ Causal attention
 
-作者：WinClaw Research Team
+作者：WENG YONGGANG(翁勇刚)
 创建：2026 年 2 月 21 日
-版本：v3.0.0-alpha
+版本：v3.1.0
 """
 
 from __future__ import annotations
@@ -110,6 +110,10 @@ class PredictiveCodingDecoder(nn.TransformerDecoder):
             hidden_states: 中间隐藏状态 [B, T, D]
         """
         B, T, D = sensory_sequence.shape
+        
+        # 确保 pos_encoding 在和输入相同的设备上
+        if self.pos_encoding.device != sensory_sequence.device:
+            self.pos_encoding = nn.Parameter(self.pos_encoding.to(sensory_sequence.device))
         
         # Step 1: 添加位置编码
         x = sensory_sequence + self.pos_encoding[:, :T, :]

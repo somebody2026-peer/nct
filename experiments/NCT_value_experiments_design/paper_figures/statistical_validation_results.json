@@ -1,0 +1,48 @@
+{
+  "permutation_test": {
+    "observed_a": -0.0006185084144769704,
+    "p_value_two_sided": 0.2934,
+    "p_value_one_sided": 0.1469,
+    "null_mean": 9.089209136252794e-06,
+    "null_std": 0.0005797575639728837,
+    "significant": false
+  },
+  "bootstrap": {
+    "vertex": {
+      "median": 1.1807975861545708,
+      "ci_low": -5.728097921691363,
+      "ci_high": 8.458971457708035,
+      "std_error": 14094.30390132705
+    },
+    "breakpoint": {
+      "median": 0.5392101274787603,
+      "ci_low": 0.03579570036175488,
+      "ci_high": 1.8000033926804404,
+      "std_error": 0.5666506508865118
+    }
+  },
+  "model_comparison": {
+    "linear": {
+      "r_squared": 0.034706583546259884,
+      "aic": -236.82709217847176,
+      "bic": -234.9382142201389
+    },
+    "quadratic": {
+      "r_squared": 0.09683191294384275,
+      "aic": -236.09103743606136,
+      "bic": -233.25772049856204
+    },
+    "piecewise": {
+      "r_squared": 0.07875455684827126,
+      "aic": -233.71449889212127,
+      "bic": -229.9367429754555
+    },
+    "best_model_aic": "Linear",
+    "best_model_bic": "Linear"
+  },
+  "effect_size": {
+    "cohens_d": -1.0112162574536872,
+    "absolute_change": 0.007877966016530902,
+    "relative_change_percent": 0.2398505585884391
+  }
+}

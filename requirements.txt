@@ -3,14 +3,36 @@
 
 # deep learning framework
 torch>=2.0.0
+torchvision>=0.15.0
 
 # scientific computing
 numpy>=1.24.0
 scipy>=1.10.0
 
+# ============================================================================
+# V2 教育实验新增依赖
+# ============================================================================
+
+# 面部关键点检测 (Phase A2: Face Landmark Extractor V2)
+mediapipe>=0.10.0
+
+# 高级模型库 (Phase A1: FER ResNet18 V2)
+timm>=0.9.0
+
+# EEG 小波分析 (Phase B: CWT 频谱特征)
+PyWavelets>=1.4.0
+
+# 机器学习 (分类基准)
+scikit-learn>=1.2.0
+
+# 数据加载
+# datasets>=2.14.0  # HuggingFace datasets (optional, for FER2013)
+
+# ============================================================================
+
 # optional: visualization tools (for development/research use)
-# matplotlib>=3.7.0
-# seaborn>=0.12.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
 
 # Streamlit Dashboard (recommended - Web visualization)
 streamlit>=1.30.0

@@ -1,0 +1,17 @@
+{
+  "experiment_name": "CATS-NET Cat Recognition",
+  "dataset_size": {
+    "train": 10,
+    "test": 50
+  },
+  "training_results": {
+    "best_accuracy": 0.0,
+    "final_accuracy": 0.0,
+    "training_time_sec": 0.000896453857421875,
+    "epochs_to_90_pct": null
+  },
+  "metrics": {
+    "mean_phi": 0,
+    "mean_concept_clarity": 0
+  }
+}

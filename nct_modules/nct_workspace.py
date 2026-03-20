@@ -40,9 +40,9 @@ Attention(Q, K, V) = softmax(QK^T / √d)V
 - 容量有限（Miller's Law 7±2） ↔ n_heads=8
 - 竞争 - 广播机制 ↔ Self-Attention + broadcast 方法
 
-作者：WinClaw Research Team
+作者：WENG YONGGANG(翁勇刚)
 创建：2026 年 2 月 21 日
-版本：v3.0.0-alpha
+版本：v3.1.0
 """
 
 from __future__ import annotations
@@ -214,11 +214,18 @@ class AttentionGlobalWorkspace(nn.Module):
         N_candidates = len(candidates)
         
         # Step 1: 堆叠候选为 [B, N_candidates, D]
-        candidates_stack = torch.stack(candidates, dim=0).unsqueeze(0)  # [1, N, D]
+        # 检查候选维度并正确堆叠
+        if candidates and candidates[0].dim() == 2:
+            # 候选已经是 [B, D] 形状，堆叠为 [N, B, D] 然后转置
+            candidates_stack = torch.stack(candidates, dim=0).transpose(0, 1)  # [B, N, D]
+        else:
+            # 候选是 [D] 形状，直接堆叠并添加 batch 维度
+            candidates_stack = torch.stack(candidates, dim=0).unsqueeze(0)  # [1, N, D]
         
         # Step 2: 扩展 workspace query 到 batch size
-        q = self.workspace_query.expand(B, -1, -1)  # [1, 1, D]
-        k = v = candidates_stack  # [1, N, D]
+        B_actual = candidates_stack.shape[0]
+        q = self.workspace_query.expand(B_actual, -1, -1)  # [B, 1, D]
+        k = v = candidates_stack  # [B, N, D]
         
         # Step 3: Multi-Head Self-Attention
         # 输出：[B, 1, D]，注意力权重：[B, H, 1, N]
