@@ -11,8 +11,7 @@
 **Created**: February 21, 2026  
 **Updated**: March 20, 2026  
 **Author**: NCT LAB Team  
-**Website**: [neuroconscious.link](https://neuroconscious.link)  
-**Code**: https://github.com/wyg5208/nct  
+
 
 [中文文档](README_CN.md)
 
@@ -335,7 +334,7 @@ The critical discovery: **Φ (integrated information) becomes a valid cognitive 
 
 ```bash
 # Clone repository
-git clone https://github.com/wyg5208/nct.git
+git clone https://github.com/somebody2026-peer/nct.git
 cd nct
 
 # Install dependencies

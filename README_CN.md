@@ -11,8 +11,7 @@
 **创建**: 2026 年 2 月 21 日  
 **更新日期**: 2026 年 3 月 20 日  
 **作者**: NCT LAB Team  
-**官方网站**: [neuroconscious.link](https://neuroconscious.link)  
-**代码**: https://github.com/wyg5208/nct  
+
 
 [English Documentation](README.md)
 
@@ -335,7 +334,7 @@ CATS-NCT 将**概念抽象（CA）双模块架构**与 NCT 的神经科学机制
 
 ```bash
 # 克隆仓库
-git clone https://github.com/wyg5208/nct.git
+git clone https://github.com/somebody2026-peer/nct.git
 cd nct
 
 # 安装依赖

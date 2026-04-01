@@ -650,7 +650,7 @@ if not st.session_state.running and st.session_state.results_history:
 st.markdown("---")
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.write("**GitHub:** https://github.com/wyg5208/nct")
+    st.write("**GitHub:** https://github.com/somebody2026-peer/nct")
 with col2:
     st.write(f"**{get_text('version', lang)}:** v3.1.0")
 with col3:

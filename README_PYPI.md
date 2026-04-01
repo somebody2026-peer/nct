@@ -460,7 +460,7 @@ nct-dashboard
 ### GitHub Repository / GitHub 仓库
 
 For source code, examples, and development documentation:  
-https://github.com/wyg5208/NCT
+https://github.com/somebody2026-peer/nct
 
 ---
 
@@ -468,8 +468,7 @@ https://github.com/wyg5208/NCT
 
 **Author**: NCT LAB Team  
 
-**License / 许可证**: MIT License  
-**Homepage / 官方网站**: https://neuroconscious.link
+**License / 许可证**: MIT License
 ---
 
 ## 🙏 Acknowledgments / 致谢
@@ -492,7 +491,7 @@ This project integrates insights from:
 
 ## 📬 Contact / 联系
 
-- **GitHub Issues**: https://github.com/wyg5208/NCT/issues
+- **GitHub Issues**: https://github.com/somebody2026-peer/nct/issues
 - **PyPI**: https://pypi.org/project/neuroconscious-transformer/
 
 **Welcome to join the NeuroConscious community! 🧠✨**  
