@@ -121,5 +121,9 @@ checkpoints/
 .env.local
 .env.*.local
 
+# GitHub tokens (security)
+*github_token*
+*_token*.md
+
 # Duplicate directories
 cats_nct - 副本/
